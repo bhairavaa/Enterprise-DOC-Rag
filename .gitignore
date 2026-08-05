@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+frontend/.vite/
+
+# Docker volumes / data
+qdrant_storage/
+postgres_data/
+pgdata/
+
+# Generated ingestion artifacts
+backend/storage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+*/tests/*
