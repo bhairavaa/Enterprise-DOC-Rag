@@ -24,16 +24,13 @@ provider-agnostic LLM/embedding wiring (OpenAI, Anthropic, Gemini, Groq, OpenRou
 
 ## 🖼️ Screenshots
 
-| Chat with streaming citations | Document management |
+| Chat with streaming citations (reranker on) | Document ingestion |
 |---|---|
-| ![Chat view](.github/media/chat.png) | ![Documents view](.github/media/documents.png) |
+| ![Chat view](.github/media/RAG_CHAT_RE-RANKER.png) | ![Documents ingestion view](.github/media/DOCS_INGESTION.png) |
 
-| Hybrid search inspector | Phoenix tracing |
+| API key generation | Phoenix tracing |
 |---|---|
-| ![Search view](.github/media/search.png) | ![Phoenix traces](.github/media/phoenix.png) |
-
-> Drop your PNGs into `.github/media/` using the filenames above (or update the
-> paths here to match) — GitHub renders them inline once pushed.
+| ![API key generation](.github/media/API_KEY_GENERATION.png) | ![Phoenix traces](.github/media/phoenix-trace.png) |
 
 ## ✨ Highlights
 
