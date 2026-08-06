@@ -1,4 +1,15 @@
-# Enterprise Document RAG
+# 📚 Enterprise Document RAG
+
+<p>
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white">
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-async-009688?logo=fastapi&logoColor=white">
+  <img alt="React" src="https://img.shields.io/badge/React-Vite-61DAFB?logo=react&logoColor=black">
+  <img alt="Postgres" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white">
+  <img alt="Qdrant" src="https://img.shields.io/badge/Qdrant-vector%20store-DC244C?logo=qdrant&logoColor=white">
+  <img alt="Celery" src="https://img.shields.io/badge/Celery-async%20workers-37814A?logo=celery&logoColor=white">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-informational">
+</p>
 
 Production-grade, multi-tenant document RAG platform — not a ChatPDF clone. Built to
 demonstrate the patterns real companies use for document Q&A at scale: hybrid search
@@ -7,11 +18,41 @@ compression, semantic answer caching, incremental indexing with document version
 streaming citations, multi-tenant API-key auth with metadata scoping, and
 provider-agnostic LLM/embedding wiring (OpenAI, Anthropic, Gemini, Groq, OpenRouter).
 
-See [`docs/adr/`](docs/adr/) for key architecture decisions and
+📄 See [`docs/adr/`](docs/adr/) for key architecture decisions and
 [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) for tracked defects and tuning decisions
 (including root cause and fix, once resolved).
 
-## Architecture
+## 🖼️ Screenshots
+
+| Chat with streaming citations | Document management |
+|---|---|
+| ![Chat view](.github/media/chat.png) | ![Documents view](.github/media/documents.png) |
+
+| Hybrid search inspector | Phoenix tracing |
+|---|---|
+| ![Search view](.github/media/search.png) | ![Phoenix traces](.github/media/phoenix.png) |
+
+> Drop your PNGs into `.github/media/` using the filenames above (or update the
+> paths here to match) — GitHub renders them inline once pushed.
+
+## ✨ Highlights
+
+- 🔍 **Hybrid retrieval** — dense + BM25 fusion, parent-child chunk merging, rerank →
+  compress → reorder pipeline
+- 🏢 **Real multi-tenancy** — API-key scoped tenants with per-key metadata filters,
+  never client-supplied tenant IDs
+- ⚡ **Streaming everything** — SSE citations-then-answer, semantic answer caching in
+  Qdrant, Redis-backed distributed rate limiting
+- 🔄 **Incremental ingestion** — Celery-driven async pipeline with document
+  versioning; re-ingesting only touches changed files
+- 🔌 **Provider-agnostic** — swap LLM/embedding providers (OpenAI, Anthropic, Gemini,
+  Groq, OpenRouter, local HuggingFace) via env vars, no code changes
+- 📊 **Observability + eval built in** — OpenTelemetry tracing via Arize Phoenix,
+  RAGAS-based faithfulness/precision/recall scoring
+- 🧾 **Documented decisions** — every non-obvious architecture choice has an ADR with
+  the tradeoffs considered
+
+## 🏗️ Architecture
 
 ```mermaid
 flowchart LR
@@ -48,7 +89,7 @@ flowchart LR
     API -.traces.-> Phoenix[(Arize Phoenix)]
 ```
 
-## Stack
+## 🧰 Stack
 
 | Layer | Choice |
 |---|---|
@@ -63,7 +104,7 @@ flowchart LR
 | LLM providers | OpenAI, Anthropic, Gemini, Groq, OpenRouter — swap via `LLM_PROVIDER` |
 | Embedding providers | OpenAI, Gemini, HuggingFace (local) — swap via `EMBEDDING_PROVIDER` |
 
-## Quick start (Docker Compose)
+## 🚀 Quick start (Docker Compose)
 
 ```bash
 cp .env.example .env   # fill in at least one LLM_PROVIDER's API key
@@ -87,7 +128,7 @@ docker compose exec api python -m app.ingestion.runner /data/sample_docs
 
 Paste one of the printed keys into the frontend's Settings page and start chatting.
 
-## Authentication
+## 🔐 Authentication
 
 Every request is scoped to a tenant via an `X-API-Key` header — never by anything the
 client sends directly (see `app/core/security/scoping.py`). Keys are managed through an
@@ -103,7 +144,7 @@ curl -X POST http://localhost:8010/api/v1/auth/api-keys \
 `allowed_filters` restricts which metadata facets a key may query — omitted facets are
 unrestricted; a key can never see outside its own tenant regardless of what it requests.
 
-### Rate limiting
+### ⏱️ Rate limiting
 
 `/chat` and `/search` are each rate-limited per API key (independent budgets — asking a
 lot of questions doesn't exhaust your search quota or vice versa), backed by a
@@ -112,7 +153,7 @@ multiple API replicas, not just one process. Default: 30 requests/60s per key pe
 endpoint, configurable via `RATE_LIMIT_ENABLED` / `RATE_LIMIT_REQUESTS` /
 `RATE_LIMIT_WINDOW_SECONDS`. Exceeding it returns `429` with a `Retry-After` header.
 
-## Local development (without Docker)
+## 💻 Local development (without Docker)
 
 ### Backend
 
@@ -159,7 +200,7 @@ Regenerate the bundled sample corpus (two tenants, mixed PDF/DOCX/PPTX) with:
 python scripts/generate_sample_docs.py
 ```
 
-## Testing
+## ✅ Testing
 
 ```bash
 cd backend
@@ -172,7 +213,7 @@ Generation-dependent behavior (real chat answers, RAGAS metric scoring) is teste
 `MockLLM`/local embeddings where possible; end-to-end verification needs a real
 `LLM_PROVIDER` API key.
 
-## Ports
+## 🔌 Ports
 
 Host-side port mappings are intentionally non-default (see `.env.example`) to avoid
 colliding with other services that may already be running locally: API `8010`,
