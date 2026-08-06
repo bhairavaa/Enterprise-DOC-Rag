@@ -38,6 +38,5 @@ Thumbs.db
 # Logs
 *.log
 
-*/tests/*
 KNOWN_ISSUES.md
 docs/*
