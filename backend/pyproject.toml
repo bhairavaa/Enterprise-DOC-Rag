@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "enterprise-doc-rag"
+version = "0.1.0"
+description = "Production-grade multi-tenant document RAG backend"
+requires-python = ">=3.12,<3.13"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency injection is the intended use of a function call in
+# an argument default (Depends/Query/etc.) — not the mutable-default-arg
+# footgun B008 otherwise guards against.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Body", "fastapi.Header"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# Session-scoped, not the default per-function loop: app.db.session.engine
+# is a module-level singleton whose asyncpg connections are tied to
+# whichever event loop created them. A fresh loop per test function leaves
+# later tests reusing pooled connections from an already-closed loop
+# ("Event loop is closed" / "'NoneType' object has no attribute 'send'").
+# One shared loop per session matches how the real app actually runs (one
+# process, one loop, for its whole lifetime).
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+markers = [
+    "integration: tests requiring live Postgres/Qdrant services",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["*/tests/*"]
