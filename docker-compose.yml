@@ -1,0 +1,98 @@
+name: enterprise-doc-rag
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-enterprise_rag}
+      POSTGRES_USER: ${POSTGRES_USER:-rag_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rag_user} -d ${POSTGRES_DB:-enterprise_rag}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.15.5
+    ports:
+      - "6335:6333"
+      - "6336:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    ports:
+      - "6006:6006"
+      - "4317:4317"
+
+  api:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment: &backend_env
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-rag_user}:${POSTGRES_PASSWORD:-change_me}@postgres:5432/${POSTGRES_DB:-enterprise_rag}
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      PHOENIX_COLLECTOR_ENDPOINT: http://phoenix:6006
+    ports:
+      - "8010:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    volumes:
+      - ./sample_docs:/data/sample_docs:ro
+      # Shared with `worker`: the API container saves uploads here, the
+      # Celery worker (a separate container) reads them from the same path.
+      - upload_storage:/app/storage
+
+  worker:
+    build:
+      context: ./backend
+    command: celery -A app.worker.celery_app worker --loglevel=info --pool=solo
+    env_file:
+      - .env
+    environment: *backend_env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    volumes:
+      - upload_storage:/app/storage
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  qdrant_storage:
+  upload_storage:
