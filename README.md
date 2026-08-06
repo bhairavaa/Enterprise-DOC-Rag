@@ -30,7 +30,7 @@ provider-agnostic LLM/embedding wiring (OpenAI, Anthropic, Gemini, Groq, OpenRou
 
 | API key generation | Phoenix tracing |
 |---|---|
-| ![API key generation](.github/media/API_KEY_GENERATION.png) | ![Phoenix traces](.github/media/phoenix-trace.png) |
+| ![API key generation](.github/media/API_KEY_GENERATION.png) | ![Phoenix traces](.github/media/PHOENIX_TRACE.png) |
 
 ## ✨ Highlights
 
