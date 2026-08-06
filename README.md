@@ -24,13 +24,47 @@ provider-agnostic LLM/embedding wiring (OpenAI, Anthropic, Gemini, Groq, OpenRou
 
 ## 🖼️ Screenshots
 
-| Chat with streaming citations (reranker on) | Document ingestion |
-|---|---|
-| ![Chat view](.github/media/RAG_CHAT_RE-RANKER.png) | ![Documents ingestion view](.github/media/DOCS_INGESTION.png) |
+### 💬 Chat with streaming citations and reranking
 
-| API key generation | Phoenix tracing |
-|---|---|
-| ![API key generation](.github/media/API_KEY_GENERATION.png) | ![Phoenix traces](.github/media/PHOENIX_TRACE.png) |
+![Chat view with department/doc-type filters, streaming citations, and a generated answer](.github/media/RAG_CHAT_RE-RANKER.png)
+
+Citations stream in *before* the generated answer, each one traced back to the exact
+source chunk (case study, page number) that produced it — not a generic "sources"
+footer. The left sidebar scopes retrieval by department/doc-type facets, and every
+result shown here has already passed through the full pipeline: hybrid dense+BM25
+fusion → parent-child merge → cross-encoder reranking → context compression, all with
+reranking switched on for this run.
+
+### 📁 Document registry and ingestion
+
+![Document registry showing per-file department, doc type, version, chunk count, and status](.github/media/DOCS_INGESTION.png)
+
+Every ingested file is tracked as a first-class row: department, doc type, version
+number, chunk count, and processing status. This is the registry that makes
+incremental indexing possible — re-running ingestion diffs against these version
+numbers and only re-embeds files that actually changed, instead of re-processing the
+whole corpus on every run.
+
+### 🔑 Multi-tenant API key management
+
+![Settings page for pasting and saving a scoped API key](.github/media/API_KEY_GENERATION.png)
+
+Tenant identity is never trusted from the client — it's resolved entirely from the
+`X-API-Key` header shown here, issued out-of-band by an admin-gated endpoint. A key
+can carry per-tenant metadata filters (e.g. restrict to one department) and can never
+see another tenant's documents, even with no filters applied and even if the client
+tried to request them.
+
+### 📊 Full request tracing with Arize Phoenix
+
+![Phoenix trace tree showing AutoMergingRetriever, QueryFusionRetriever, and embedding spans with latency](.github/media/PHOENIX_TRACE.png)
+
+Every chat request is traced end-to-end with OpenTelemetry: the span tree here breaks
+down auto-merging retrieval, query fusion, embedding calls, and reranking into
+individual timed steps, alongside the exact input query and retrieved context that fed
+the LLM. This is what makes retrieval quality debuggable in production instead of a
+black box — you can see precisely which stage of the pipeline is slow or returning
+weak results, per request.
 
 ## ✨ Highlights
 
