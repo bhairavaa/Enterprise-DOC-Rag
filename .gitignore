@@ -39,3 +39,4 @@ Thumbs.db
 *.log
 
 */tests/*
+KNOWN_ISSUES.md
